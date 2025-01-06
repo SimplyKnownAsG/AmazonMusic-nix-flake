@@ -1,8 +1,8 @@
 {
-  description = "A Nix flake for SumatraPDF";
+  description = "A Nix flake for Amazon Music";
 
   inputs.erosanix.url = "github:emmanuelrosa/erosanix";
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/master";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
 
   outputs = { self, nixpkgs, erosanix }: {
 
@@ -12,20 +12,20 @@
       };
 
     in with (pkgs // erosanix.packages.x86_64-linux // erosanix.lib.x86_64-linux); {
-      default = self.packages.x86_64-linux.sumatrapdf;
+      default = self.packages.x86_64-linux.AmazonMusic;
 
-      sumatrapdf = callPackage ./sumatrapdf.nix {
-        inherit mkWindowsApp makeDesktopIcon copyDesktopIcons;
+      AmazonMusic = callPackage ./amazon-music.nix {
+        inherit mkWindowsApp makeDesktopIcon copyDesktopIcons pkgs;
 
         wine = wineWowPackages.base;
       };
     };
 
-    apps.x86_64-linux.sumatrapdf = {
+    apps.x86_64-linux.AmazonMusic = {
       type = "app";
-      program = "${self.packages.x86_64-linux.sumatrapdf}/bin/sumatrapdf";
+      program = "${self.packages.x86_64-linux.AmazonMusic}/bin/AmazonMusic";
     };
 
-    apps.x86_64-linux.default = self.apps.x86_64-linux.sumatrapdf;
+    apps.x86_64-linux.default = self.apps.x86_64-linux.AmazonMusic;
   };
 }

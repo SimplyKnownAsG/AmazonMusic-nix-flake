@@ -7,19 +7,25 @@
 , makeDesktopIcon   # This comes with erosanix. It's a handy way to generate desktop icons.
 , copyDesktopItems
 , copyDesktopIcons  # This comes with erosanix. It's a handy way to generate desktop icons.
-, unzip }: let
+, unzip
+, pkgs
+}:
+
+let
   # The default settings used if user doesn't already have a settings file.
   # Tabs are disabled because they lead to UI issues when using Wine.
-  defaultSettings = ./SumatraPDF-settings.txt;
+  # defaultSettings = ./SumatraPDF-settings.txt;
 in mkWindowsApp rec {
   inherit wine;
 
-  pname = "sumatrapdf";
-  version = "3.5.2";
+  pname = "AmazonMusic";
+  version = "1.4";
 
+  # curl 'https://qatgqujbd2.execute-api.us-west-2.amazonaws.com/prod/getCurrentVersion' \
+  # -H 'user-agent: (Windows NT 10.0; WOW64)'
   src = builtins.fetchurl {
-    url = "https://www.sumatrapdfreader.org/dl/rel/${version}/SumatraPDF-${version}-64.zip";
-    sha256 = "sha256:1299a6n4m13a22sig53dmlz3nf3pr1q9kfyz49lcwk8qr6av7k36";
+    url = "https://d2j9xt6n9dg5d3.cloudfront.net/win/24780926_1c962c14fdc55b2e347aeb3c3ffc5ee6/AmazonMusicInstaller.exe";
+    sha256 = "sha256:aedf1f32f37f5a0b0be79ae29aebf12f3dd8e9918f9fdaebee107fdf397343a7";
   };
 
   # By default, when a Wine prefix is first created Wine will produce a warning prompt if Mono is not installed.
@@ -29,7 +35,7 @@ in mkWindowsApp rec {
 
   # In most cases, you'll either be using an .exe or .zip as the src.
   # Even in the case of a .zip, you probably want to unpack with the launcher script.
-  dontUnpack = true;   
+  dontUnpack = true;
 
   # You need to set the WINEARCH, which can be either "win32" or "win64".
   # Note that the wine package you choose must be compatible with the Wine architecture.
@@ -52,27 +58,37 @@ in mkWindowsApp rec {
   # But note that you must ommit $WINEPREFIX from the path.
   # To figure out what needs to be persisted, take at look at $(dirname $WINEPREFIX)/upper,
   # while the app is running.
-  fileMap = { "$HOME/.config/${pname}/SumatraPDF-settings.txt" = "drive_c/${pname}/SumatraPDF-settings.txt";
-              "$HOME/.cache/${pname}" = "drive_c/${pname}/${pname}cache";
+  fileMap = {
+    # "$HOME/.config/${pname}/SumatraPDF-settings.txt" = "drive_c/${pname}/SumatraPDF-settings.txt";
+    # "$HOME/.cache/${pname}" = "drive_c/${pname}/${pname}cache";
   };
 
-  # By default, `fileMap` is applied right before running the app and is cleaned up after the app terminates. If the following option is set to "true", then `fileMap` is also applied prior to `winAppInstall`. This is set to "false" by default.
+  # By default, `fileMap` is applied right before running the app and is cleaned up after the app terminates. If the
+  # following option is set to "true", then `fileMap` is also applied prior to `winAppInstall`. This is set to "false"
+  # by default.
   fileMapDuringAppInstall = false;
 
-  # By default `mkWindowsApp` doesn't persist registry changes made during runtime. Therefore, if an app uses the registry then set this to "true". The registry files are saved to `$HOME/.local/share/mkWindowsApp/$pname/`.
+  # By default `mkWindowsApp` doesn't persist registry changes made during runtime. Therefore, if an app uses the
+  # registry then set this to "true". The registry files are saved to `$HOME/.local/share/mkWindowsApp/$pname/`.
   persistRegistry = false;
 
-  # By default mkWindowsApp creates ephemeral (temporary) WINEPREFIX(es). 
-  # Setting persistRuntimeLayer to true causes mkWindowsApp to retain the WINEPREFIX, for the short term. 
+  # By default mkWindowsApp creates ephemeral (temporary) WINEPREFIX(es).
+  # Setting persistRuntimeLayer to true causes mkWindowsApp to retain the WINEPREFIX, for the short term.
   # This option is designed for apps which can't have their automatic updates disabled.
   # It allows package maintainers to not have to constantly update their mkWindowsApp packages.
   # It is NOT meant for long-term persistance; If the Windows or App layers change, the Runtime layer will be discarded.
-  persistRuntimeLayer = false;
+  persistRuntimeLayer = true;
 
   # The method used to calculate the input hashes for the layers.
-  # This should be set to "store-path", which is the strictest and most reproduceable method. But it results in many rebuilds of the layers since the slightest change to the package inputs will change the input hashes.
-  # An alternative is "version" which is a relaxed method and results in fewer rebuilds but is less reproduceable. If you are considering using "version", contact me first. There may be a better way.
+  # This should be set to "store-path", which is the strictest and most reproduceable method. But it results in many
+  # rebuilds of the layers since the slightest change to the package inputs will change the input hashes. An alternative
+  # is "version" which is a relaxed method and results in fewer rebuilds but is less reproduceable. If you are
+  # considering using "version", contact me first. There may be a better way.
   inputHashMethod = "store-path";
+
+  buildInputs = [
+    pkgs.samba # ntlm_auth
+  ];
 
   nativeBuildInputs = [ unzip copyDesktopItems copyDesktopIcons ];
 
@@ -84,15 +100,14 @@ in mkWindowsApp rec {
   # WINEPREFIX, WINEARCH, AND WINEDLLOVERRIDES are set
   # and wine, winetricks, and cabextract are in the environment.
   winAppInstall = ''
-    d="$WINEPREFIX/drive_c/${pname}"
-    config_dir="$HOME/.config/sumatrapdf"
+    # Install fake fonts.
+    winetricks fakechinese fakejapanese fakekorean
 
-    mkdir -p "$d"
-    unzip ${src} -d "$d"
+    # Run the installer.
+    wine ${src}
 
-    mkdir -p "$config_dir"
-    cp -v -n "${defaultSettings}" "$config_dir/SumatraPDF-settings.txt"
-    chmod ug+w "$config_dir/SumatraPDF-settings.txt"
+    # Add the update.ini; it complains if it is not there.
+    touch "$WINEPREFIX/drive_c/users/$USER/AppData/Local/Amazon Music/update.ini"
   '';
 
 
@@ -110,7 +125,9 @@ in mkWindowsApp rec {
   # Command line arguments are in $ARGS, not $@
   # DO NOT BLOCK. For example, don't run: wineserver -w
   winAppRun = ''
-    wine "$WINEPREFIX/drive_c/${pname}/SumatraPDF-${version}-64.exe" "$ARGS"
+    which -a smbclient
+    ls "$app_layer/wineprefix/drive_c/users/$USER/AppData/Local/Amazon Music/update.ini"
+    wine "$app_layer/wineprefix/drive_c/users/$USER/AppData/Local/Amazon Music/Amazon Music.exe"
   '';
 
   # This code will run after winAppRun, but only for the first instance.
@@ -131,30 +148,9 @@ in mkWindowsApp rec {
   '';
 
   desktopItems = let
-    mimeTypes = ["application/pdf"
-                 "application/epub+zip"
-                 "application/x-mobipocket-ebook"
-                 "application/vnd.amazon.mobi8-ebook"
-                 "application/x-zip-compressed-fb2"
-                 "application/x-cbt"
-                 "application/x-cb7"
-                 "application/x-7z-compressed"
-                 "application/vnd.rar"
-                 "application/x-tar"
-                 "application/zip"
-                 "image/vnd.djvu"
-                 "image/vnd.djvu+multipage"
-                 "application/vnd.ms-xpsdocument"
-                 "application/oxps"
-                 "image/jpeg"
-                 "image/png"
-                 "image/gif"
-                 "image/webp"
-                 "image/tiff"
-                 "image/tiff-multipage"
-                 "image/x-tga"
-                 "image/bmp"
-                 "image/x-dib" ];
+    mimeTypes = [
+                 # "application/pdf"
+               ];
   in [
     (makeDesktopItem {
       inherit mimeTypes;
@@ -162,27 +158,27 @@ in mkWindowsApp rec {
       name = pname;
       exec = pname;
       icon = pname;
-      desktopName = "Sumatra PDF";
-      genericName = "Document Viewer";
-      categories = ["Office" "Viewer"];
+      desktopName = "Amazon Music";
+      genericName = "Music Player";
+      categories = ["Audio" "Music" "Player" "AudioVideo"];
     })
   ];
 
   desktopIcon = makeDesktopIcon {
-    name = "sumatrapdf";
+    name = "AmazonMusic";
 
     src = fetchurl {
-      url = "https://github.com/sumatrapdfreader/sumatrapdf/raw/${version}rel/gfx/SumatraPDF-256x256x32.png";
-      sha256 = "sha256-i1wHW5zFmm9q56ydKhCxfExiATlpZyrIe3fhF1tJ7dA=";
+      url = "https://d5fx445wy2wpk.cloudfront.net/icons/amznMusic_favicon.png";
+      sha256 = "0fr29f32ri9qn3dmh2jqsdz1bqc8g6z8hh4c8aw5ci9fkd2zyzq4";
     };
   };
 
-  meta = with lib; {
-    description = "A free PDF, eBook (ePub, Mobi), XPS, DjVu, CHM, Comic Book (CBZ and CBR) viewer for Windows.";
-    homepage = "https://www.sumatrapdfreader.org/free-pdf-reader";
-    license = licenses.gpl3;
-    maintainers = with maintainers; [ emmanuelrosa ];
-    platforms = [ "x86_64-linux" ];
-  };
+  # meta = with lib; {
+  #   description = "A free PDF, eBook (ePub, Mobi), XPS, DjVu, CHM, Comic Book (CBZ and CBR) viewer for Windows.";
+  #   homepage = "https://www.sumatrapdfreader.org/free-pdf-reader";
+  #   license = licenses.gpl3;
+  #   maintainers = with maintainers; [ emmanuelrosa ];
+  #   platforms = [ "x86_64-linux" ];
+  # };
 }
 
