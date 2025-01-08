@@ -2,7 +2,7 @@
   description = "A Nix flake for Amazon Music";
 
   inputs.erosanix.url = "github:emmanuelrosa/erosanix";
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
   outputs = { self, nixpkgs, erosanix }: {
 
