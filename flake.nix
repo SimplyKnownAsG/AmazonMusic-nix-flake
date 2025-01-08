@@ -14,7 +14,7 @@
     in with (pkgs // erosanix.packages.x86_64-linux // erosanix.lib.x86_64-linux); {
       default = self.packages.x86_64-linux.AmazonMusic;
 
-      AmazonMusic = callPackage ./amazon-music.nix {
+      AmazonMusic = callPackage ./AmazonMusic.nix {
         inherit mkWindowsApp makeDesktopIcon copyDesktopIcons pkgs;
 
         wine = wineWowPackages.base;
