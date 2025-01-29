@@ -5,9 +5,6 @@
 , fetchurl
 , makeDesktopItem
 , makeDesktopIcon   # This comes with erosanix. It's a handy way to generate desktop icons.
-, copyDesktopItems
-, copyDesktopIcons  # This comes with erosanix. It's a handy way to generate desktop icons.
-, unzip
 , pkgs
 }:
 
@@ -77,7 +74,7 @@ in mkWindowsApp rec {
   # This option is designed for apps which can't have their automatic updates disabled.
   # It allows package maintainers to not have to constantly update their mkWindowsApp packages.
   # It is NOT meant for long-term persistance; If the Windows or App layers change, the Runtime layer will be discarded.
-  persistRuntimeLayer = true;
+  persistRuntimeLayer = false;
 
   # The method used to calculate the input hashes for the layers.
   # This should be set to "store-path", which is the strictest and most reproduceable method. But it results in many
@@ -90,7 +87,7 @@ in mkWindowsApp rec {
     pkgs.samba # ntlm_auth
   ];
 
-  nativeBuildInputs = [ unzip copyDesktopItems copyDesktopIcons ];
+  nativeBuildInputs = [];
 
   # This code will become part of the launcher script.
   # It will execute if the application needs to be installed,
@@ -125,8 +122,6 @@ in mkWindowsApp rec {
   # Command line arguments are in $ARGS, not $@
   # DO NOT BLOCK. For example, don't run: wineserver -w
   winAppRun = ''
-    which -a smbclient
-    ls "$app_layer/wineprefix/drive_c/users/$USER/AppData/Local/Amazon Music/update.ini"
     wine "$app_layer/wineprefix/drive_c/users/$USER/AppData/Local/Amazon Music/Amazon Music.exe"
   '';
 
@@ -147,14 +142,8 @@ in mkWindowsApp rec {
     runHook postInstall
   '';
 
-  desktopItems = let
-    mimeTypes = [
-                 # "application/pdf"
-               ];
-  in [
+  desktopItems = [
     (makeDesktopItem {
-      inherit mimeTypes;
-
       name = pname;
       exec = pname;
       icon = pname;
@@ -165,7 +154,7 @@ in mkWindowsApp rec {
   ];
 
   desktopIcon = makeDesktopIcon {
-    name = "AmazonMusic";
+    name = pname;
 
     src = fetchurl {
       url = "https://d5fx445wy2wpk.cloudfront.net/icons/amznMusic_favicon.png";
@@ -174,10 +163,10 @@ in mkWindowsApp rec {
   };
 
   # meta = with lib; {
-  #   description = "A free PDF, eBook (ePub, Mobi), XPS, DjVu, CHM, Comic Book (CBZ and CBR) viewer for Windows.";
-  #   homepage = "https://www.sumatrapdfreader.org/free-pdf-reader";
-  #   license = licenses.gpl3;
-  #   maintainers = with maintainers; [ emmanuelrosa ];
+  #   description = "Amazon Music";
+  #   homepage = "https://music.amazon.com";
+  #   license = licenses.unfree;
+  #   maintainers = with maintainers; [ simplyknownasg ];
   #   platforms = [ "x86_64-linux" ];
   # };
 }

@@ -2,7 +2,7 @@
   description = "A Nix flake for Amazon Music";
 
   inputs.erosanix.url = "github:emmanuelrosa/erosanix";
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
 
   outputs = { self, nixpkgs, erosanix }: {
 
@@ -15,7 +15,7 @@
       default = self.packages.x86_64-linux.AmazonMusic;
 
       AmazonMusic = callPackage ./AmazonMusic.nix {
-        inherit mkWindowsApp makeDesktopIcon copyDesktopIcons pkgs;
+        inherit mkWindowsApp makeDesktopIcon pkgs;
 
         wine = wineWowPackages.base;
       };
