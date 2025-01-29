@@ -147,7 +147,7 @@ in mkWindowsApp rec {
       name = pname;
       exec = pname;
       icon = pname;
-      desktopName = "Amazon Music";
+      desktopName = "AmazonMusic";
       genericName = "Music Player";
       categories = ["Audio" "Music" "Player" "AudioVideo"];
     })
@@ -162,12 +162,12 @@ in mkWindowsApp rec {
     };
   };
 
-  # meta = with lib; {
-  #   description = "Amazon Music";
-  #   homepage = "https://music.amazon.com";
-  #   license = licenses.unfree;
-  #   maintainers = with maintainers; [ simplyknownasg ];
-  #   platforms = [ "x86_64-linux" ];
-  # };
+  meta = with lib; {
+    description = "AmazonMusic";
+    homepage = "https://music.amazon.com";
+    license = licenses.unfree;
+    maintainers = with maintainers; [ simplyknownasg ];
+    platforms = [ "x86_64-linux" ];
+  };
 }
 
