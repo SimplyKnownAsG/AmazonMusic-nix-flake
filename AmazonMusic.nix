@@ -67,14 +67,14 @@ in mkWindowsApp rec {
 
   # By default `mkWindowsApp` doesn't persist registry changes made during runtime. Therefore, if an app uses the
   # registry then set this to "true". The registry files are saved to `$HOME/.local/share/mkWindowsApp/$pname/`.
-  persistRegistry = false;
+  persistRegistry = true;
 
   # By default mkWindowsApp creates ephemeral (temporary) WINEPREFIX(es).
   # Setting persistRuntimeLayer to true causes mkWindowsApp to retain the WINEPREFIX, for the short term.
   # This option is designed for apps which can't have their automatic updates disabled.
   # It allows package maintainers to not have to constantly update their mkWindowsApp packages.
   # It is NOT meant for long-term persistance; If the Windows or App layers change, the Runtime layer will be discarded.
-  persistRuntimeLayer = false;
+  persistRuntimeLayer = true;
 
   # The method used to calculate the input hashes for the layers.
   # This should be set to "store-path", which is the strictest and most reproduceable method. But it results in many
@@ -147,7 +147,7 @@ in mkWindowsApp rec {
       name = pname;
       exec = pname;
       icon = pname;
-      desktopName = "AmazonMusic";
+      desktopName = "Amazon Music";
       genericName = "Music Player";
       categories = ["Audio" "Music" "Player" "AudioVideo"];
     })
